@@ -23,8 +23,8 @@ class CivilisSimulation:
     Simulate an artificial civilization of insight-based agents.
     
     Args:
-        num_agents: Number of agents in the society
-        rounds: Total simulation rounds
+        num_agents: Number of agents in the society (min=1)
+        rounds: Total simulation rounds (min=1)
         network_type: 'small_world' (default) or 'random'
         seed: Random seed for reproducibility
     """
@@ -36,6 +36,11 @@ class CivilisSimulation:
         network_type: str = "small_world",
         seed: int = 42
     ):
+        if num_agents < 1:
+            raise ValueError("num_agents must be at least 1")
+        if rounds < 1:
+            raise ValueError("rounds must be at least 1")
+        
         self.num_agents = num_agents
         self.rounds = rounds
         self.network_type = network_type
@@ -51,14 +56,12 @@ class CivilisSimulation:
         return nx.relabel_nodes(G, mapping)
 
     def run(self) -> List[Dict[str, Any]]:
-        """Run the simulation and return history metrics."""
         print(f"🌍 Initializing Civilis simulation ({self.num_agents} agents, {self.rounds} rounds)...")
         
         agents = [CivilisAgent(f"A{i:03d}") for i in range(self.num_agents)]
         id_to_agent = {a.id: a for a in agents}
         G = self._build_network()
 
-        # Inject common knowledge
         common_knowledge = ["Fire is dangerous.", "Water helps survival.", "Sharing is beneficial."]
         for agent in agents:
             for k in common_knowledge:
@@ -68,7 +71,9 @@ class CivilisSimulation:
         LOG_INTERVAL = max(1, self.rounds // 10)
 
         for round_num in range(1, self.rounds + 1):
-            speakers = random.sample(agents, k=max(1, int(0.3 * self.num_agents)))
+            num_speakers = max(1, min(int(0.3 * self.num_agents), len(agents)))
+            speakers = random.sample(agents, k=num_speakers)
+            
             for speaker in speakers:
                 neighbors = list(G.neighbors(speaker.id))
                 if not neighbors:
@@ -87,9 +92,13 @@ class CivilisSimulation:
                 metrics = {
                     "round": round_num,
                     "total_insights": len(all_insights),
-                    "diversity": diversity,
-                    "consensus": consensus
+                    "diversity": round(diversity, 4),
+                    "consensus": round(consensus, 4)
                 }
                 history.append(metrics)
+                
+                if round_num == 1 or round_num % (LOG_INTERVAL * 2) == 0:
+                    print(f"  🔄 Round {round_num}/{self.rounds} | Insights: {len(all_insights)} | Diversity: {diversity:.2f}")
 
+        print(f"✅ Simulation completed! Final insights: {history[-1]['total_insights']}")
         return history
