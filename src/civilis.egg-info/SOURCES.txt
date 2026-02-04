@@ -1,0 +1,15 @@
+LICENSE
+NOTICE
+README.md
+pyproject.toml
+src/civilis/__init__.py
+src/civilis/__version__.py
+src/civilis/core.py
+src/civilis/embedding_backends.py
+src/civilis/simulation.py
+src/civilis.egg-info/PKG-INFO
+src/civilis.egg-info/SOURCES.txt
+src/civilis.egg-info/dependency_links.txt
+src/civilis.egg-info/requires.txt
+src/civilis.egg-info/top_level.txt
+tests/test_basic.py

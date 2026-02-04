@@ -1,4 +1,4 @@
-# Copyright 2026 The Civilis Authors
+# Copyright 2024 Civilis Contributors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,94 +11,132 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-import random
-import networkx as nx
-from collections import Counter
+"""
+Civilis Simulation Core
+支持：HuggingFace镜像（中国大陆优化）| 本地模型路径 | 清晰错误指引
+无需修改代码，通过环境变量灵活配置
+"""
+import numpy as np
+import os
 from typing import List, Dict, Any
-from .core import CivilisAgent
 
-class CivilisSimulation:
-    """
-    Simulate an artificial civilization of insight-based agents.
+# =============== CivilisAgent 类 ===============
+class CivilisAgent:
+    def __init__(self, agent_id: int, embedding_model, rng: np.random.Generator):
+        self.agent_id = agent_id
+        self.embedding_model = embedding_model
+        self.rng = rng
+        self.memory = []
+        self.insights = 0
     
-    Args:
-        num_agents: Number of agents in the society (min=1)
-        rounds: Total simulation rounds (min=1)
-        network_type: 'small_world' (default) or 'random'
-        seed: Random seed for reproducibility
-    """
+    def observe(self, observation: str):
+        self.memory.append(observation)
+    
+    def reflect(self) -> str:
+        if not self.memory:
+            return "No observations yet"
+        recent = self.memory[-3:]
+        self.insights += 1
+        return f"Insight #{self.insights}: Based on {len(recent)} observations"
 
-    def __init__(
-        self,
-        num_agents: int = 50,
-        rounds: int = 300,
-        network_type: str = "small_world",
-        seed: int = 42
-    ):
-        if num_agents < 1:
-            raise ValueError("num_agents must be at least 1")
-        if rounds < 1:
-            raise ValueError("rounds must be at least 1")
-        
+# =============== CivilisSimulation 核心类 ===============
+class CivilisSimulation:
+    def __init__(self, num_agents: int = 10, rounds: int = 100, seed: int = None):
         self.num_agents = num_agents
         self.rounds = rounds
-        self.network_type = network_type
-        self.seed = seed
-        random.seed(seed)
-
-    def _build_network(self) -> nx.Graph:
-        if self.network_type == "small_world":
-            G = nx.watts_strogatz_graph(self.num_agents, 4, 0.2, seed=self.seed)
-        else:
-            G = nx.gnm_random_graph(self.num_agents, self.num_agents * 2, seed=self.seed)
-        mapping = {i: f"A{i:03d}" for i in range(self.num_agents)}
-        return nx.relabel_nodes(G, mapping)
-
-    def run(self) -> List[Dict[str, Any]]:
-        print(f"🌍 Initializing Civilis simulation ({self.num_agents} agents, {self.rounds} rounds)...")
+        self.seed = seed if seed is not None else np.random.randint(0, 10000)
+        self.rng = np.random.default_rng(self.seed)
+        self._init_embedding()
+        self.agents = [CivilisAgent(i, self.embedding_model, self.rng) for i in range(self.num_agents)]
+        self.history = []
+    
+    def _init_embedding(self):
+        model_path = os.getenv(
+            "CIVILIS_EMBEDDING_MODEL", 
+            "sentence-transformers/all-MiniLM-L6-v2"
+        )
         
-        agents = [CivilisAgent(f"A{i:03d}") for i in range(self.num_agents)]
-        id_to_agent = {a.id: a for a in agents}
-        G = self._build_network()
-
-        common_knowledge = ["Fire is dangerous.", "Water helps survival.", "Sharing is beneficial."]
-        for agent in agents:
-            for k in common_knowledge:
-                agent.learn(k, "Kun")
-
-        history = []
-        LOG_INTERVAL = max(1, self.rounds // 10)
-
-        for round_num in range(1, self.rounds + 1):
-            num_speakers = max(1, min(int(0.3 * self.num_agents), len(agents)))
-            speakers = random.sample(agents, k=num_speakers)
+        # 中国大陆网络优化（自动启用HF镜像）
+        if "sentence-transformers/" in model_path and os.getenv("HF_ENDPOINT") is None:
+            try:
+                import socket
+                socket.setdefaulttimeout(2.0)
+                socket.create_connection(("hf-mirror.com", 443), timeout=2)
+                os.environ["HF_ENDPOINT"] = "https://hf-mirror.com"
+                print("🌐 检测到中国大陆网络环境，已自动启用HuggingFace镜像源 (hf-mirror.com)")
+            except:
+                pass
+        
+        try:
+            print(f"📥 正在加载嵌入模型: {model_path}")
+            from sentence_transformers import SentenceTransformer
             
-            for speaker in speakers:
-                neighbors = list(G.neighbors(speaker.id))
-                if not neighbors:
-                    continue
-                listener = id_to_agent[random.choice(neighbors)]
-                msg = random.choice(common_knowledge + ["I wonder about cooperation."])
-                listener.interact(msg)
+            self.embedding_model = SentenceTransformer(
+                model_path,
+                trust_remote_code=True,
+                cache_folder=os.getenv("CIVILIS_MODEL_CACHE", None)
+            )
+            dim = self.embedding_model.get_sentence_embedding_dimension()
+            print(f"✅ 模型加载成功 | 维度: {dim} | 来源: {model_path}")
+            
+        except Exception as e:
+            error_msg = f"""
+❌ 模型加载失败: {str(e)}
 
-            if round_num % LOG_INTERVAL == 0 or round_num == 1:
-                all_insights = [ins.content for a in agents for ins in a.memory.insights]
-                unique = set(all_insights)
-                diversity = len(unique) / max(len(all_insights), 1)
-                counter = Counter(all_insights)
-                top5 = sum(c for _, c in counter.most_common(5))
-                consensus = top5 / max(len(all_insights), 1)
-                metrics = {
-                    "round": round_num,
-                    "total_insights": len(all_insights),
-                    "diversity": round(diversity, 4),
-                    "consensus": round(consensus, 4)
-                }
-                history.append(metrics)
-                
-                if round_num == 1 or round_num % (LOG_INTERVAL * 2) == 0:
-                    print(f"  🔄 Round {round_num}/{self.rounds} | Insights: {len(all_insights)} | Diversity: {diversity:.2f}")
-
-        print(f"✅ Simulation completed! Final insights: {history[-1]['total_insights']}")
-        return history
+💡 解决方案（任选其一）:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+【方案1】启用HuggingFace镜像（中国大陆推荐）
+   Windows PowerShell:
+      $env:HF_ENDPOINT="https://hf-mirror.com"; python verify_install.py
+   
+   Windows CMD:
+      set HF_ENDPOINT=https://hf-mirror.com && python verify_install.py
+   
+   Git Bash / Linux / macOS:
+      export HF_ENDPOINT=https://hf-mirror.com
+      python verify_install.py
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+【方案2】手动下载模型（100%可靠）
+   1. 创建模型目录: mkdir -p ./models/embeddings
+   2. 下载模型（使用镜像）:
+        git lfs install
+        git clone https://hf-mirror.com/sentence-transformers/all-MiniLM-L6-v2 ./models/embeddings
+   3. 设置环境变量:
+        export CIVILIS_EMBEDDING_MODEL=./models/embeddings
+   4. 重新运行: python verify_install.py
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+"""
+            print(error_msg)
+            raise RuntimeError("嵌入模型加载失败，请根据上方指引操作") from e
+    
+    def run(self) -> Dict[str, Any]:
+        print(f"🌍 初始化 Civilis 模拟 ({self.num_agents} 智能体, {self.rounds} 轮)...")
+        
+        for round_num in range(self.rounds):
+            observations = [f"Round {round_num} observation" for _ in range(self.num_agents)]
+            reflections = []
+            for agent, obs in zip(self.agents, observations):
+                agent.observe(obs)
+                reflections.append(agent.reflect())
+            
+            self.history.append({
+                "round": round_num,
+                "observations": observations,
+                "reflections": reflections
+            })
+        
+        total_insights = sum(agent.insights for agent in self.agents)
+        print(f"✅ 模拟完成! 总洞察数: {total_insights}")
+        
+        return {
+            "total_insights": total_insights,
+            "agents_count": self.num_agents,
+            "rounds_completed": self.rounds,
+            "history_length": len(self.history),
+            "history": self.history
+        }
+    
+    def get_agent_insights(self, agent_id: int) -> int:
+        if 0 <= agent_id < len(self.agents):
+            return self.agents[agent_id].insights
+        return 0

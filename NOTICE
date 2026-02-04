@@ -1,11 +1,13 @@
-Civilis: An Artificial Civilization Simulation Framework
-Copyright 2026 The Civilis Authors
+Civilis
+Copyright 2024 Civilis Contributors
 
-This product includes software developed at
-The Civilis Project (https://civilis.ai).
+This product includes software developed by:
+- Sentence-Transformers (https://www.sbert.net)
+  Copyright 2020 Nils Reimers
+  Licensed under Apache License 2.0
 
-This product bundles the following third-party components:
+- NumPy (https://numpy.org)
+  Copyright 2005-2024 NumPy Developers
+  Licensed under BSD 3-Clause License
 
-- sentence-transformers (Apache License 2.0)
-- NetworkX (BSD 3-Clause License)
-- Transformers (Apache License 2.0)
+Project Home: https://github.com/civilis-ai/civilis

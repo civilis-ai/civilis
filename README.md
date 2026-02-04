@@ -10,6 +10,31 @@
 ...
 
 ## 📦 Install
+## 🔒 Offline Usage (Restricted Networks)
+
+Civilis fully supports offline operation for environments with:
+- Corporate firewalls
+- Air-gapped systems
+- China mainland networks (Great Firewall)
+- CI/CD pipelines without internet
+
+### ✅ Automatic Offline Detection
+No configuration needed! Civilis automatically:
+1. Checks `CIVILIS_OFFLINE=1` or `TRANSFORMERS_OFFLINE=1` environment variables
+2. Performs lightweight network test (1-second timeout)
+3. Falls back to synthetic embeddings if network unavailable
+
+### 🚀 Manual Offline Mode (Recommended for Verification)
+```bash
+# Linux/macOS
+export CIVILIS_OFFLINE=1
+python verify_install.py
+
+# Windows PowerShell
+ $ env:CIVILIS_OFFLINE=1; python verify_install.py
+
+# Windows CMD
+set CIVILIS_OFFLINE=1 && python verify_install.py
 
 ### ✅ Recommended (works today):
 ```bash

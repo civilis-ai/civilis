@@ -1,0 +1,13 @@
+{
+  "simulation_config": {
+    "agents": 100,
+    "rounds": 500,
+    "seed": 42
+  },
+  "results": {
+    "total_insights": 50000,
+    "agents_count": 100,
+    "rounds_completed": 500
+  },
+  "visualization": "insights_timeline.png"
+}

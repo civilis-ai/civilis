@@ -12,10 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 """
-Civilis 主入口
-自动导出核心组件（适配 simulation.py 实际结构）
+Civilis 版本声明
 """
-from .simulation import CivilisAgent, CivilisSimulation
-from .__version__ import __version__
-
-__all__ = ["CivilisAgent", "CivilisSimulation", "__version__"]
+__version__ = "0.1.0"
