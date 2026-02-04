@@ -1,0 +1,11 @@
+Civilis: An Artificial Civilization Simulation Framework
+Copyright 2026 The Civilis Authors
+
+This product includes software developed at
+The Civilis Project (https://civilis.ai).
+
+This product bundles the following third-party components:
+
+- sentence-transformers (Apache License 2.0)
+- NetworkX (BSD 3-Clause License)
+- Transformers (Apache License 2.0)

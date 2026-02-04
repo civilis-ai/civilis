@@ -1,0 +1,76 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "civilis"
+version = "0.1.0"
+description = "An open cognitive architecture for embodied agents, enabling insight-based learning and multi-agent collaboration."
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [
+    {name = "Your Name", email = "you@example.com"}
+]
+maintainers = [
+    {name = "Civilis Core Team", email = "team@civilis.ai"}
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: Apache Software License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Robotics"
+]
+keywords = ["embodied AI", "multi-agent", "cognitive architecture", "insight learning", "robotics"]
+dependencies = [
+    "torch>=2.0.0",
+    "transformers>=4.35.0",
+    "sentence-transformers>=2.2.0",
+    "networkx>=3.0",
+    "numpy>=1.21.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "black>=23.0",
+    "ruff>=0.1.0",
+    "pre-commit>=3.0",
+    "matplotlib>=3.5"
+]
+docs = [
+    "sphinx>=7.0",
+    "furo>=2023.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/civilis-ai/civilis"
+Repository = "https://github.com/civilis-ai/civilis"
+Documentation = "https://civilis.ai"
+Changelog = "https://github.com/civilis-ai/civilis/releases"
+Security = "https://github.com/civilis-ai/civilis/blob/main/SECURITY.md"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 88
+target-version = ['py39', 'py310', 'py311']
+
+[tool.ruff]
+select = ["E", "W", "F", "I", "B", "C4"]
+ignore = ["E501"]  # handled by black
+fixable = ["ALL"]
+unfixable = []
+target-version = "py39"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --strict-markers"

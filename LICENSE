@@ -1,0 +1,39 @@
+
+---
+
+#### ✅ `pyproject.toml`（现代 Python 构建标准）
+```toml
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "civilis"
+version = "0.1.0"
+description = "An open-source framework for simulating artificial civilization emergence"
+readme = "README.md"
+license = {file = "LICENSE"}
+authors = [{name = "Your Name", email = "you@example.com"}]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: Apache Software License",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+]
+dependencies = [
+    "torch>=2.0",
+    "transformers>=4.35",
+    "sentence-transformers>=2.2",
+    "networkx>=3.0",
+    "numpy>=1.21",
+]
+
+[project.urls]
+Homepage = "https://github.com/civilis-ai/civilis"
+Repository = "https://github.com/civilis-ai/civilis"
+Documentation = "https://civilis.ai"
+
+[tool.setuptools.packages.find]
+where = ["src"]
